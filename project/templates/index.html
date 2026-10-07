@@ -30,19 +30,27 @@ button:disabled{opacity:.5;cursor:not-allowed}header button{margin:0;background:
 
         <div id="auth-modal" style = "display:none; position:flex; inset:0; background:transparent;">  
         <div> <!--modal card-->
-            <input id ="login-email" type="email" placeholder="Emaiil"/>
-            <input id="login-password" type="password" placeholder="Password"/>
-            <button onclick="handlelogin()">Sign In</button>
-            <button onclick="openRegistrationModal()">Register</button>
+            <input id="register-first-name" type="text" placeholder="First Name"/>
+            <input id="register-last-name" type="text" placeholder="Last Name"/>
+            <input id ="register-email" type="email" placeholder="Student Email"/>
+             <input id="register-password" type="password" placeholder="Password - NSHE ID"/> 
+            <button onclick="handleRegistration()">Register</button>
         </div>
     </div>
 
       </div>
-      <div class="flex items-center gap-stack-md">
+      <div id="auth-buttons" class="flex items-center gap-stack-md">
         <button onclick="openModal()"
           class="px-4 py-2 rounded-lg bg-primary text-on-primary font-button text-button hover:bg-primary-container transition-colors shadow-sm active:scale-95 duration-200"
         >
           Sign In
+
+          
+        </button>
+        <button onclick="openModal()"
+          class="px-4 py-2 rounded-lg bg-primary text-on-primary font-button text-button hover:bg-primary-container transition-colors shadow-sm active:scale-95 duration-200"
+        >
+          Sign Up
 
           
         </button>
@@ -71,7 +79,7 @@ function signOut(){
 
 function openModal() {
   document.getElementById('auth-modal').style.display = 'flex';
-  document.getElementById('auth-modal').style.display = 'flex';
+  document.getElementById('auth-buttons').style.display = 'none';
 
 }
 
@@ -87,7 +95,7 @@ async function handlelogin() {
     return;
   }
 
-  const res = await fetch('http://localhost:8000/login', {
+  const res = await fetch('http://localhost:5000/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -107,30 +115,36 @@ async function handlelogin() {
   }
   }
 
-async function handleRegistration(){
-  const name = document.getElementById('register-name').value;
+async function handleRegistration() {
+  const first_name = document.getElementById('register-first-name').value;
+  const last_name = document.getElementById('register-last-name').value;
   const email = document.getElementById('register-email').value;
   const password = document.getElementById('register-password').value;
 
-  if(!name || !email || !password) {
+  if (!first_name || !last_name || !email || !password) {
     alert('Please fill in all fields.');
     return;
   }
 
-  const res = await fetch('http://localhost:8000/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ name, email, password })
-  });
+  try {
+    const res = await fetch('/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ first_name, last_name, email, password })
+    });
+    const data = await res.json();
 
-  const data = await res.json();
-  if(res.ok) {
-    document.getElementById('auth-modal').style.display = 'none';
-    alert('Registration successful. Please sign in.');
-  } else {
-    showError(data.message || "Registration failed. Please try again.");
+    if (res.ok) {
+      closeModal();
+      alert('Registration successful. Please sign in.');
+    } else if (Array.isArray(data)) {
+      alert(`${data[0].loc[0]}: ${data[0].msg}`);  // validation errors, e.g. "email: Value error, ..."
+    } else {
+      alert(data.error || 'Registration failed. Please try again.');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Something went wrong (check the Flask terminal): ' + err.message);
   }
 }
 

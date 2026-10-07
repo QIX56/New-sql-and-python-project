@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 
 db = SQLAlchemy()
@@ -13,7 +13,8 @@ def create_app():
     app = Flask(__name__)
 
     load_dotenv()
-
+    print("Reading", find_dotenv(), "| MYSQL_DB =", os.getenv("MYSQL_DB"), flush=True)
+    
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
